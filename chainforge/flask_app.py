@@ -465,6 +465,8 @@ def makeFetchCall():
 
     response = py_requests.post(url, headers=headers, json=body)
 
+    print('==makeFetchCall response==', response.json())
+
     if response.status_code == 200:
         ret = jsonify({'response': response.json()})
         ret.headers.add('Access-Control-Allow-Origin', '*')

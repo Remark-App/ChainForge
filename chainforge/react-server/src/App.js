@@ -211,6 +211,9 @@ const App = () => {
   };
 
   const onClickExamples = () => {
+
+    // auto export
+    exportFlow()
     if (examplesModal && examplesModal.current)
       examplesModal.current.trigger();
   };
@@ -474,7 +477,12 @@ const App = () => {
     setConfirmationDialogProps({
       title: 'Create a new flow',
       message: 'Are you sure? Any unexported changes to your existing flow will be lost.',
-      onConfirm: () => resetFlow(), // Set the callback if user confirms action
+      onConfirm: () => {
+        exportFlow();
+        setTimeout(()=>{
+          resetFlow()
+        }, 2000)
+      }, // Set the callback if user confirms action
     });
 
     // Trigger the 'are you sure' modal:
@@ -573,7 +581,10 @@ const App = () => {
 
     // Autosave the flow to localStorage every minute:
     console.log('set autosaving interval');
-    const interv = setInterval(() => saveFlow(rf_inst), 60000); // 60000 milliseconds = 1 minute
+    const interv = setInterval(() => {
+      console.log("6s Auto SaveFlow!")
+      return saveFlow(rf_inst)
+    }, 6000); // 60000 milliseconds = 1 minute
     setAutosavingInterval(interv);
 
     if (!IS_RUNNING_LOCALLY) {

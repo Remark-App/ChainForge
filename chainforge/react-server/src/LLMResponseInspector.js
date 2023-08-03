@@ -256,7 +256,7 @@ const LLMResponseInspector = ({ jsonResponses, wideFormat }) => {
                 {eatenvars.includes('LLM') ?
                       ps
                     : (<div className="response-item-llm-name-wrapper">
-                        <h1>{res_obj.llm}</h1>
+                        <h1>{res_obj.llm} <br></br>{JSON.stringify(res_obj.tokens, null, 2)}</h1>
                         {ps}
                       </div>)
                 }
