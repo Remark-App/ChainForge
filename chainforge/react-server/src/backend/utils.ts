@@ -200,8 +200,23 @@ export async function call_chatgpt(prompt: string, model: LLM, n: number = 1, te
   // Try to call OpenAI
   let response: Dict = {};
   try {
+    const startTime = performance.now();
     const completion = await openai_call(query);
-    response = completion.data;
+    const endTime = performance.now();
+
+    const elapsedTime = endTime - startTime;
+    response = {
+      ...completion.data,
+      total_seconds: (elapsedTime / 1000).toFixed(3)
+    };
+
+    if(response.usage){
+      response.usage = {
+        ...response.usage,
+        total_seconds: response.total_seconds
+      }
+    }
+
   } catch (error: any) {
     if (error?.response) {
       throw new Error(error.response.data?.error?.message);
@@ -211,7 +226,7 @@ export async function call_chatgpt(prompt: string, model: LLM, n: number = 1, te
       throw new Error(error?.message || error);
     }
   } 
-  
+  console.log('--openai--res', response);
   return [query, response];
 }
 
@@ -357,6 +372,7 @@ export async function call_anthropic(prompt: string, model: LLM, n: number = 1, 
         'X-Api-Key': ANTHROPIC_API_KEY,
       };
       const resp = await route_fetch(url, 'POST', headers, query);
+      console.log('--resp-', resp);
       responses.push(resp);
 
     } else {

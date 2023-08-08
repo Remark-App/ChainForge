@@ -270,7 +270,7 @@ const App = () => {
     // the StorageCache. (This does LZ compression to save space.)
     StorageCache.saveToLocalStorage('chainforge-state');
 
-    console.log('Flow saved!');
+    // console.log('Flow saved!');
   }, [rfInstance]);
 
   // Triggered when user confirms 'New Flow' button
@@ -582,7 +582,7 @@ const App = () => {
     // Autosave the flow to localStorage every minute:
     console.log('set autosaving interval');
     const interv = setInterval(() => {
-      console.log("6s Auto SaveFlow!")
+      // console.log("6s Auto SaveFlow!")
       return saveFlow(rf_inst)
     }, 6000); // 60000 milliseconds = 1 minute
     setAutosavingInterval(interv);

@@ -116,6 +116,7 @@ export class ResponseInfo {
 }
 
 function to_standard_format(r: LLMResponseObject | Dict): StandardizedLLMResponse {
+  console.log('--r--', r);
   let resp_obj: StandardizedLLMResponse = {
     vars: r['info'],
     metavars: r['metavars'] || {},
@@ -692,6 +693,7 @@ export async function queryLLM(id: string,
 
     // Await the responses from all queried LLMs
     const llm_results = await Promise.all(tasks);
+    console.log('--llm_results--', llm_results);
     llm_results.forEach(result => {
       responses[result.llm_key] = result.responses;
       if (result.errors.length > 0)
@@ -718,6 +720,11 @@ export async function queryLLM(id: string,
   });
   
   // Return all responses for all LLMs
+
+  console.log('==queryLLM==', {
+    responses: res, 
+    errors: all_errors
+  })
   return {
     responses: res, 
     errors: all_errors

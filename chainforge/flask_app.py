@@ -7,6 +7,7 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from chainforge.promptengine.utils import LLM, call_dalai
 import requests as py_requests
+from json import dumps
 
 """ =================
     SETUP AND GLOBALS
@@ -465,7 +466,16 @@ def makeFetchCall():
 
     response = py_requests.post(url, headers=headers, json=body)
 
-    print('==makeFetchCall response==', response.json())
+
+    body_json = response.json()
+    body_json['total_seconds'] = str(response.elapsed.total_seconds())
+    response._content = dumps(body_json).encode()
+
+    print('req==>>', ({
+        'url': url,
+        'headers': headers,
+        'body': body
+    }), '==makeFetchCall response==', response.json(), 'total_seconds==',  response.elapsed.total_seconds())
 
     if response.status_code == 200:
         ret = jsonify({'response': response.json()})

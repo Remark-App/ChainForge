@@ -23,8 +23,8 @@ async function* yield_as_completed(promises: Array<Promise<any>>) {
   // chained promises, so that if there is a rejection, the caller's 
   // error handler will stop a rejection to bubble up unhandled.
   promises = promises.map(p => p = p.then((val: any) => {
-      promises.splice(promises.indexOf(p), 1);
-      return val;
+    promises.splice(promises.indexOf(p), 1);
+    return val;
   }));
   while (promises.length) yield Promise.race(promises);
   return true;
@@ -54,7 +54,7 @@ export class PromptPipeline {
   }
 
   private collect_LLM_response(result: _IntermediateLLMResponseType, llm: LLM, cached_responses: Dict): LLMResponseObject | LLMResponseError {
-    let {prompt, chat_history, query, response, past_resp_obj, past_resp_obj_cache_idx} = result;
+    let { prompt, chat_history, query, response, past_resp_obj, past_resp_obj_cache_idx } = result;
 
     // Check for selective failure
     if (!query && response instanceof LLMResponseError)
@@ -67,8 +67,8 @@ export class PromptPipeline {
 
     // Create a response obj to represent the response
     let resp_obj: LLMResponseObject = {
-      "prompt": prompt.toString(), 
-      "query": query, 
+      "prompt": prompt.toString(),
+      "query": query,
       "responses": extract_responses(response, llm),
       "raw_response": response,
       "llm": llm,
@@ -89,7 +89,7 @@ export class PromptPipeline {
     if (!(resp_obj.prompt in cached_responses))
       cached_responses[resp_obj.prompt] = [];
     else if (!Array.isArray(cached_responses[resp_obj.prompt]))
-      cached_responses[resp_obj.prompt] = [ cached_responses[resp_obj.prompt] ];
+      cached_responses[resp_obj.prompt] = [cached_responses[resp_obj.prompt]];
 
     if (past_resp_obj_cache_idx > -1)
       cached_responses[resp_obj.prompt][past_resp_obj_cache_idx] = resp_obj;
@@ -129,17 +129,17 @@ export class PromptPipeline {
    *                                 and 3 different prior chat histories, it will send off 9 queries. 
    * @yields Yields `LLMResponseObject` if API call succeeds, or `LLMResponseError` if API call fails, for all requests. 
    */
-  async *gen_responses(vars: Dict, 
-                        llm: LLM,
-                          n: number = 1, 
-                temperature: number = 1.0, 
-                llm_params?: Dict,
-            chat_histories?: ChatHistoryInfo[]): AsyncGenerator<LLMResponseObject | LLMResponseError, boolean, undefined> {
+  async *gen_responses(vars: Dict,
+    llm: LLM,
+    n: number = 1,
+    temperature: number = 1.0,
+    llm_params?: Dict,
+    chat_histories?: ChatHistoryInfo[]): AsyncGenerator<LLMResponseObject | LLMResponseError, boolean, undefined> {
     // Load any cache'd responses
     let responses = this._load_cached_responses();
 
     // Normalize the chat history var such that there's always at least one element. 
-    const _chat_histories = (chat_histories !== undefined && chat_histories.length > 0) ? chat_histories : [ undefined ];
+    const _chat_histories = (chat_histories !== undefined && chat_histories.length > 0) ? chat_histories : [undefined];
 
     // Query LLM with each prompt, yield + cache the responses
     let tasks: Array<Promise<_IntermediateLLMResponseType>> = [];
@@ -159,20 +159,20 @@ export class PromptPipeline {
 
         // If there's chat history, we need to fill any special (#) vars from the carried chat_history vars and metavars:
         if (chat_history !== undefined) {
-          prompt.fill_special_vars({...chat_history?.fill_history, ...chat_history?.metavars});
+          prompt.fill_special_vars({ ...chat_history?.fill_history, ...chat_history?.metavars });
           prompt_str = prompt.toString();
         }
 
         if (!prompt.is_concrete())
           throw Error(`Cannot send a prompt '${prompt}' to LLM: Prompt is a template.`)
-        
+
         // Get the cache of responses with respect to this prompt, + normalize format so it's always an array (of size >= 0)
         const cache_bucket = responses[prompt_str];
-        let cached_resps: LLMResponseObject[] = Array.isArray(cache_bucket) ? cache_bucket : (cache_bucket === undefined ? [] : [ cache_bucket ]);
+        let cached_resps: LLMResponseObject[] = Array.isArray(cache_bucket) ? cache_bucket : (cache_bucket === undefined ? [] : [cache_bucket]);
 
         // Check if there's a cached response with the same prompt + (if present) chat history:
         let cached_resp: LLMResponseObject | undefined = undefined;
-        let cached_resp_idx: number = -1; 
+        let cached_resp_idx: number = -1;
         // Find an indivdual response obj that matches the chat history:
         for (let i = 0; i < cached_resps.length; i++) {
           if (isEqualChatHistory(cached_resps[i].chat_history, chat_history?.messages)) {
@@ -182,7 +182,7 @@ export class PromptPipeline {
           }
         }
         let extracted_resps: Array<any> = cached_resp ? cached_resp["responses"] : [];
-        
+
         // First check if there is already a response for this item under these settings. If so, we can save an LLM call:
         if (cached_resp && extracted_resps.length >= n) {
           // console.log(` - Found cache'd response for prompt ${prompt_str}. Using...`);
@@ -197,7 +197,7 @@ export class PromptPipeline {
             "info": mergeDicts(info, chat_history?.fill_history),
             "metavars": mergeDicts(metavars, chat_history?.metavars),
           };
-          if (chat_history !== undefined) 
+          if (chat_history !== undefined)
             resp.chat_history = chat_history.messages;
           yield resp;
           continue;
@@ -205,23 +205,23 @@ export class PromptPipeline {
 
         num_queries_sent += 1;
 
-        if (max_req > 1) {                
+        if (max_req > 1) {
           // Call the LLM asynchronously to generate a response, sending off
           // requests in batches of size 'max_req' separated by seconds 'wait_secs' to avoid hitting rate limit
-          tasks.push(this._prompt_llm(llm, prompt, n, temperature, 
-                                      cached_resp, 
-                                      cached_resp_idx,
-                                      num_queries_sent, 
-                                      max_req, 
-                                      wait_secs, 
-                                      llm_params,
-                                      chat_history));
+          tasks.push(this._prompt_llm(llm, prompt, n, temperature,
+            cached_resp,
+            cached_resp_idx,
+            num_queries_sent,
+            max_req,
+            wait_secs,
+            llm_params,
+            chat_history));
         } else {
           // Block. Await + yield a single LLM call.
-          let result = await this._prompt_llm(llm, prompt, n, temperature, 
-                                              cached_resp, cached_resp_idx, 
-                                              undefined, undefined, undefined, 
-                                              llm_params, chat_history);
+          let result = await this._prompt_llm(llm, prompt, n, temperature,
+            cached_resp, cached_resp_idx,
+            undefined, undefined, undefined,
+            llm_params, chat_history);
           yield this.collect_LLM_response(result, llm, responses);
         }
       }
@@ -231,7 +231,7 @@ export class PromptPipeline {
     for await (const result of yield_as_completed(tasks)) {
       yield this.collect_LLM_response(result, llm, responses);
     }
-      
+
     return true;
   }
 
@@ -239,7 +239,7 @@ export class PromptPipeline {
    * Loads cache'd responses of JSON.
    * Useful for continuing if computation was interrupted halfway through. 
    */
-  _load_cached_responses(): {[key: string]: (LLMResponseObject | LLMResponseObject[])} {
+  _load_cached_responses(): { [key: string]: (LLMResponseObject | LLMResponseObject[]) } {
     return StorageCache.get(this._storageKey) || {};
   }
 
@@ -251,27 +251,27 @@ export class PromptPipeline {
     StorageCache.store(this._storageKey, responses);
   }
 
-  async _prompt_llm(llm: LLM, 
-                    prompt: PromptTemplate, 
-                    n: number = 1, 
-                    temperature: number = 1.0, 
-                    past_resp_obj?: LLMResponseObject,
-                    past_resp_obj_cache_idx?: number,
-                    query_number?: number,
-                    rate_limit_batch_size?: number,
-                    rate_limit_wait_secs?: number,
-                    llm_params?: Dict,
-                    chat_history?: ChatHistoryInfo): Promise<_IntermediateLLMResponseType> {
+  async _prompt_llm(llm: LLM,
+    prompt: PromptTemplate,
+    n: number = 1,
+    temperature: number = 1.0,
+    past_resp_obj?: LLMResponseObject,
+    past_resp_obj_cache_idx?: number,
+    query_number?: number,
+    rate_limit_batch_size?: number,
+    rate_limit_wait_secs?: number,
+    llm_params?: Dict,
+    chat_history?: ChatHistoryInfo): Promise<_IntermediateLLMResponseType> {
     // Detect how many responses we have already (from cache obj past_resp_obj)
     if (past_resp_obj) {
       // How many *new* queries we need to send: 
       // NOTE: The check n > len(past_resp_obj["responses"]) should occur prior to calling this function. 
       n = n - past_resp_obj["responses"].length;
     }
-    
+
     // Block asynchronously when we exceed rate limits
-    if (query_number !== undefined && rate_limit_batch_size !== undefined && rate_limit_wait_secs !== undefined && 
-        rate_limit_batch_size >= 1 && rate_limit_wait_secs > 0) {
+    if (query_number !== undefined && rate_limit_batch_size !== undefined && rate_limit_wait_secs !== undefined &&
+      rate_limit_batch_size >= 1 && rate_limit_wait_secs > 0) {
       let batch_num = Math.floor(query_number / rate_limit_batch_size);
       if (batch_num > 0) {
         // We've exceeded the estimated batch rate limit and need to wait the appropriate seconds before sending off new API calls:
@@ -281,7 +281,7 @@ export class PromptPipeline {
         await sleep(wait_secs);
       }
     }
-    
+
     // Now try to call the API. If it fails for whatever reason, 'soft fail' by returning
     // an LLMResponseException object as the 'response'.
     let params = clone(llm_params);
@@ -290,19 +290,32 @@ export class PromptPipeline {
     let response: Dict | LLMResponseError;
     try {
       [query, response] = await call_llm(llm, prompt.toString(), n, temperature, params);
-    } catch(err) {
-      return { prompt: prompt, 
-               query: undefined, 
-               response: new LLMResponseError(err.message), 
-               past_resp_obj: undefined,
-               past_resp_obj_cache_idx: -1 };
+    } catch (err) {
+      return {
+        prompt: prompt,
+        query: undefined,
+        response: new LLMResponseError(err.message),
+        past_resp_obj: undefined,
+        past_resp_obj_cache_idx: -1
+      };
     }
-    
-    return { prompt, 
-             chat_history,
-             query, 
-             response,
-             past_resp_obj,
-             past_resp_obj_cache_idx };
+
+    console.log('=prompt=', {
+      prompt,
+      chat_history,
+      query,
+      response,
+      past_resp_obj,
+      past_resp_obj_cache_idx
+    })
+
+    return {
+      prompt,
+      chat_history,
+      query,
+      response,
+      past_resp_obj,
+      past_resp_obj_cache_idx
+    };
   }
 }

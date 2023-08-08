@@ -103,4 +103,5 @@ export interface StandardizedLLMResponse {
   tokens: Dict,
   eval_res?: Dict,
   chat_history?: ChatHistory,
+  totalSeconds?: any,
 }
