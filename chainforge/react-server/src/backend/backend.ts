@@ -124,7 +124,29 @@ function to_standard_format(r: LLMResponseObject | Dict): StandardizedLLMRespons
     prompt: r['prompt'],
     responses: r['responses'],
     tokens: r.raw_response?.usage || {},
+    raw_response: r['raw_response'] || [],
+
   };
+
+
+  if(Object.keys(resp_obj.tokens).length === 0){
+    
+    let all_total_secondes: string = '0';
+    let tmp_total_secondes: number = 0;
+
+    for(let i = 0; i<resp_obj.raw_response.length; i++){
+      tmp_total_secondes = tmp_total_secondes +  Number(resp_obj.raw_response[i].total_seconds) 
+    }
+
+    all_total_secondes = tmp_total_secondes.toFixed(3).toString();
+
+    resp_obj.tokens = {
+      'total_secondes': all_total_secondes
+    }
+
+
+  }
+
   if ('eval_res' in r)
     resp_obj.eval_res = r.eval_res;
   if ('chat_history' in r)

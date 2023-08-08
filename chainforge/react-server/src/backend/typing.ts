@@ -104,4 +104,5 @@ export interface StandardizedLLMResponse {
   eval_res?: Dict,
   chat_history?: ChatHistory,
   totalSeconds?: any,
+  raw_response?: Array<any>,
 }
