@@ -129,8 +129,11 @@ const PromptNode = ({ data, id, type: node_type }) => {
 
   // Signal that prompt node state is dirty; user should re-run:
   const signalDirty = useCallback(() => {
-    if (promptTextOnLastRun !== null && status === 'ready')
+    if (promptTextOnLastRun !== null && status === 'ready'){
+        console.log('==PromptNode==signalDirty')
         setStatus('warning');
+    }
+        
   }, [promptTextOnLastRun, status])
 
   const addModel = useCallback((new_model, all_items) => {
@@ -170,7 +173,9 @@ const PromptNode = ({ data, id, type: node_type }) => {
 
     // Update status icon, if need be:
     if (promptTextOnLastRun !== null && status !== 'warning' && value !== promptTextOnLastRun) {
+        console.log('=PromptNode=handleInputChange==')
         setStatus('warning');
+
     }
 
     refreshTemplateHooks(value);
@@ -196,7 +201,9 @@ const PromptNode = ({ data, id, type: node_type }) => {
   useEffect(() => {
     if (data.refresh && data.refresh === true) {
       setDataPropsForNode(id, { refresh: false });
+      console.log('==PromptNode==upstreamChange', data)
       setStatus('warning');
+      handleRunClick()
     }
   }, [data]);
 

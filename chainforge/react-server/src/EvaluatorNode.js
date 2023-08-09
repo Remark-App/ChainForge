@@ -138,6 +138,8 @@ const EvaluatorNode = ({ data, id }) => {
     if (data.refresh && data.refresh === true) {
       setDataPropsForNode(id, { refresh: false });
       setStatus('warning');
+      console.log('==upstream changes==');
+      handleRunClick();
     }
   }, [data]);
 

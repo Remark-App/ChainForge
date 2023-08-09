@@ -63,7 +63,7 @@ const TextFieldsNode = ({ data, id }) => {
     setTextfieldsValues(new_fields);
     setFieldVisibility(new_vis);
     setDataPropsForNode(id, {fields: new_fields, fields_visibility: new_vis});
-    pingOutputNodes(id);
+    // pingOutputNodes(id);
   }, [textfieldsValues, fieldVisibility, id, delButtonId, setDataPropsForNode, pingOutputNodes]);
 
   // Initialize fields (run once at init)
@@ -82,7 +82,7 @@ const TextFieldsNode = ({ data, id }) => {
     new_fields[getUID()] = "";
     setTextfieldsValues(new_fields);
     setDataPropsForNode(id, { fields: new_fields });
-    pingOutputNodes(id);
+    // pingOutputNodes(id);
   }, [textfieldsValues, id, setDataPropsForNode, pingOutputNodes]);
 
   // Disable/hide a text field temporarily
@@ -91,7 +91,7 @@ const TextFieldsNode = ({ data, id }) => {
     vis[field_id] = fieldVisibility[field_id] === false; // toggles it
     setFieldVisibility(vis);
     setDataPropsForNode(id, { fields_visibility: vis });
-    pingOutputNodes(id);
+    // pingOutputNodes(id);
   }, [fieldVisibility, setDataPropsForNode, pingOutputNodes]);
 
   // Save the state of a textfield when it changes and update hooks
@@ -124,7 +124,7 @@ const TextFieldsNode = ({ data, id }) => {
     }
 
     setDataPropsForNode(id, new_data);
-    pingOutputNodes(id);
+    // pingOutputNodes(id);
 
   }, [textfieldsValues, templateVars, id]);
 
@@ -159,7 +159,7 @@ const TextFieldsNode = ({ data, id }) => {
   // Pass upstream changes down to later nodes in the chain
   useEffect(() => {
     if (data.refresh && data.refresh === true) {
-      pingOutputNodes(id);
+      // pingOutputNodes(id);
     }
   }, [data, id, pingOutputNodes]);
 
