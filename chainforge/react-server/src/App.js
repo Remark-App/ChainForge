@@ -584,7 +584,7 @@ const App = () => {
     const interv = setInterval(() => {
       // console.log("6s Auto SaveFlow!")
       return saveFlow(rf_inst)
-    }, 6000); // 60000 milliseconds = 1 minute
+    }, 30000); // 60000 milliseconds = 1 minute
     setAutosavingInterval(interv);
 
     if (!IS_RUNNING_LOCALLY) {
