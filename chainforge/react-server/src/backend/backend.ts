@@ -116,7 +116,7 @@ export class ResponseInfo {
 }
 
 function to_standard_format(r: LLMResponseObject | Dict): StandardizedLLMResponse {
-  console.log('--r--', r);
+  // console.log('--r--', r);
   let resp_obj: StandardizedLLMResponse = {
     vars: r['info'],
     metavars: r['metavars'] || {},
@@ -675,9 +675,16 @@ export async function queryLLM(id: string,
     try {
       console.log(`Querying ${llm_str}...`)
 
+      // vars = {
+      //   node: ["001", "002"]
+      // }
+
+      // console.log('==next=>>', {vars, llm_str, num_generations, temperature, llm_params, chat_hists})
+
       // Yield responses for 'llm' for each prompt generated from the root template 'prompt' and template variables in 'properties':
       for await (const response of prompter.gen_responses(vars, llm_str as LLM, num_generations, temperature, llm_params, chat_hists)) {
         
+
         // Check for selective failure
         if (response instanceof LLMResponseError) {  // The request failed
           console.error(`error when fetching response from ${llm_str}: ${response.message}`);
@@ -743,10 +750,10 @@ export async function queryLLM(id: string,
   
   // Return all responses for all LLMs
 
-  console.log('==queryLLM==', {
-    responses: res, 
-    errors: all_errors
-  })
+  // console.log('==queryLLM==', {
+  //   responses: res, 
+  //   errors: all_errors
+  // })
   return {
     responses: res, 
     errors: all_errors

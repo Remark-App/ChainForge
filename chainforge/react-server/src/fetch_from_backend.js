@@ -7,6 +7,7 @@ import { queryLLM, executejs, executepy,
 const clone = (obj) => JSON.parse(JSON.stringify(obj));
 
 async function _route_to_js_backend(route, params) {
+  // console.log('=_route_to_js_backend=',params)
   switch (route) {
     case 'grabResponses':
       return grabResponses(params.responses);
@@ -15,6 +16,7 @@ async function _route_to_js_backend(route, params) {
     case 'generatePrompts':
       return generatePrompts(params.prompt, clone(params.vars));
     case 'queryllm':
+      // 
       return queryLLM(params.id, clone(params.llm), params.n, params.prompt, clone(params.vars), params.chat_histories, params.api_keys, params.no_cache, params.progress_listener);
     case 'executejs':
       return executejs(params.id, params.code, params.responses, params.scope);

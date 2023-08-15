@@ -11,7 +11,7 @@ import LLMResponseInspectorModal from './LLMResponseInspectorModal';
 import fetch_from_backend from './fetch_from_backend';
 import { PromptTemplate, escapeBraces } from './backend/template';
 import ChatHistoryView from './ChatHistoryView';
-
+import StorageCache from './backend/cache';
 const getUniqueLLMMetavarKey = (responses) => {
     const metakeys = new Set(responses.map(resp_obj => Object.keys(resp_obj.metavars)).flat());
     let i = 0;
@@ -82,8 +82,13 @@ const PromptNode = ({ data, id, type: node_type }) => {
   const pingOutputNodes = useStore((state) => state.pingOutputNodes);
   const getNode = useStore((state) => state.getNode);
 
+
+
   // API Keys (set by user in popup GlobalSettingsModal)
   const apiKeys = useStore((state) => state.apiKeys);
+
+
+
 
   const [jsonResponses, setJSONResponses] = useState(null);
   const [templateVars, setTemplateVars] = useState(data.vars || []);
@@ -115,6 +120,9 @@ const PromptNode = ({ data, id, type: node_type }) => {
   const [progress, setProgress] = useState(undefined);
   const [progressAnimated, setProgressAnimated] = useState(true);
   const [runTooltip, setRunTooltip] = useState(null);
+
+
+
 
   const triggerAlert = useCallback((msg) => {
     setProgress(undefined);
@@ -158,6 +166,8 @@ const PromptNode = ({ data, id, type: node_type }) => {
   }, [setDataPropsForNode, signalDirty]);
 
   const refreshTemplateHooks = (text) => {
+
+    console.log('refreshTemplateHooks==', text)
     // Update template var fields + handles
     const found_template_vars = Array.from(
         new Set(extractBracketedSubstrings(text)));  // gets all strs within braces {} that aren't escaped; e.g., ignores \{this\} but captures {this}
@@ -166,6 +176,8 @@ const PromptNode = ({ data, id, type: node_type }) => {
 
   const handleInputChange = (event) => {
     const value = event.target.value;
+
+    console.log("==handleInputChange==", value)
 
     // Store prompt text
     setPromptText(value);
@@ -207,6 +219,8 @@ const PromptNode = ({ data, id, type: node_type }) => {
     }
   }, [data]);
 
+
+
   // Pull all inputs needed to request responses.
   // Returns [prompt, vars dict]
   const pullInputData = (_targetHandles) => {
@@ -225,6 +239,7 @@ const PromptNode = ({ data, id, type: node_type }) => {
                 if (e.target == nodeId && e.targetHandle == varname) {
                     // Get the immediate output:
                     let out = output(e.source, e.sourceHandle);
+                    // console.log('==out==', out);
                     if (!out || !Array.isArray(out) || out.length === 0) return;
 
                     // Check the format of the output. Can be str or dict with 'text' and more attrs:
@@ -458,7 +473,7 @@ const PromptNode = ({ data, id, type: node_type }) => {
     setProgressAnimated(true);
 
     // Pull the data to fill in template input variables, if any
-    const pulled_data = pullInputData(templateVars);
+    let pulled_data = pullInputData(templateVars);
     const prompt_template = promptText;
 
     const rejected = (err) => {
@@ -614,7 +629,72 @@ const PromptNode = ({ data, id, type: node_type }) => {
     // Now put it all together!
     fetch_resp_count()
         .then(open_progress_listener)
-        .then(query_llms)
+        .then(()=>{
+
+
+
+
+
+            if(Object.keys(pulled_data).length > 0){
+                query_llms()
+            }else {
+
+                let tmpArray = [];
+
+                if(edges){
+                    for(let i = 0; i< edges.length; i++){
+                        if(edges[i].target === id){
+                            // console.log('!!source--node-id', state.edges[i].source, '==getNode=of=source==', getNode(state.edges[i].source))
+                            if(getNode(edges[i].source).type === "evaluator"){
+                                // console.log("==handle==", getNode())
+        
+                                const StorageCacheData = StorageCache.getInstance().data;
+                                console.log('==data+++', edges[i].source, StorageCacheData);
+                                console.log('=data=json', StorageCacheData[(edges[i].source + '.json')])
+
+                                const tmpCacheData = StorageCacheData[(edges[i].source + '.json')]
+
+                                for(let m = 0; m < tmpCacheData.length; m++){
+                                    for(let n = 0; n < tmpCacheData[m]['eval_res']['items'].length; n++){
+                                        tmpArray.push(JSON.stringify(tmpCacheData[m]['eval_res']['items'][n]))
+                                    }
+                                    
+                                }
+
+
+                                
+                            }
+                        }
+                    }
+            
+                }
+
+
+                console.log('==tmpArray==', tmpArray,'getNode', getNode(id), getNode(id).data.prompt);
+                if(getNode(id).data && getNode(id).data.prompt){
+                    const matchList = getNode(id).data.prompt.match(/\{([^}]+)\}/);
+                    let tmpPrompt = ""
+                    if (matchList) {
+                        tmpPrompt = matchList[1];
+                        console.log(tmpPrompt);
+                    } 
+                    pulled_data = {}
+                    
+                    pulled_data[tmpPrompt] =  tmpArray;
+    
+                    console.log('==pulled_data==', pulled_data);
+                    
+                    query_llms()
+                } else {
+                    console.log('==getNode(id).prompt==', getNode(id).data.prompt);
+                }
+
+
+            }
+        }
+
+
+        )
         .catch(rejected);
   };
 
