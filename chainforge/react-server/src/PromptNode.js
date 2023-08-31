@@ -167,17 +167,18 @@ const PromptNode = ({ data, id, type: node_type }) => {
 
   const refreshTemplateHooks = (text) => {
 
-    console.log('refreshTemplateHooks==', text)
+    
     // Update template var fields + handles
     const found_template_vars = Array.from(
         new Set(extractBracketedSubstrings(text)));  // gets all strs within braces {} that aren't escaped; e.g., ignores \{this\} but captures {this}
-    setTemplateVars(found_template_vars);
+        console.log('refreshTemplateHooks==', text, 'found_template_vars==', found_template_vars)
+        setTemplateVars(found_template_vars);
   };
 
   const handleInputChange = (event) => {
     const value = event.target.value;
 
-    console.log("==handleInputChange==", value)
+    // console.log("==handleInputChange==", value)
 
     // Store prompt text
     setPromptText(value);
@@ -215,7 +216,35 @@ const PromptNode = ({ data, id, type: node_type }) => {
       setDataPropsForNode(id, { refresh: false });
       console.log('==PromptNode==upstreamChange', data)
       setStatus('warning');
+
+      // 检测变量是否已经填充
+    
+          // Go through all template hooks (if any) and check they're connected:
+    const is_fully_connected = templateVars.every(varname => {
+
+        // Check that some edge has, as its target, this node and its template hook:
+        return edges.some((edge) => {
+          console.log('==edge==', edge);
+
+          const result = edge.target == id && edge.targetHandle == varname;
+
+          if(result === true){
+            console.log('==result==', result,"==source==", edge.source, "==targetHandle==", edge.targetHandle, "==target==", edge.target);
+
+          }
+
+
+          return result;
+        });
+    });
+
+    if(is_fully_connected){
+
       handleRunClick()
+    }
+
+      
+
     }
   }, [data]);
 
@@ -426,6 +455,13 @@ const PromptNode = ({ data, id, type: node_type }) => {
   const handleRunClick = (event) => {
     // Go through all template hooks (if any) and check they're connected:
     const is_fully_connected = templateVars.every(varname => {
+
+
+
+
+        
+
+
         // Check that some edge has, as its target, this node and its template hook:
         return edges.some(e => (e.target == id && e.targetHandle == varname));
     });
@@ -632,22 +668,29 @@ const PromptNode = ({ data, id, type: node_type }) => {
         .then(()=>{
 
 
-
-
-
             if(Object.keys(pulled_data).length > 0){
                 query_llms()
             }else {
 
+                // 获取所有 tmpPrompt
+
+
+
+
                 let tmpArray = [];
+
+                console.log('==templateVars==', templateVars);
+
+                let promptAndArray = {};
 
                 if(edges){
                     for(let i = 0; i< edges.length; i++){
                         if(edges[i].target === id){
+                            console.log('==getNode(edges[i].source)==', getNode(edges[i].source),'==getNode(edges[i].target)==', getNode(edges[i].target), 'edges[i].targetHandle==', edges[i].targetHandle);
                             // console.log('!!source--node-id', state.edges[i].source, '==getNode=of=source==', getNode(state.edges[i].source))
                             if(getNode(edges[i].source).type === "evaluator"){
                                 // console.log("==handle==", getNode())
-        
+                                const tmpPromptToArray = [];
                                 const StorageCacheData = StorageCache.getInstance().data;
                                 console.log('==data+++', edges[i].source, StorageCacheData);
                                 console.log('=data=json', StorageCacheData[(edges[i].source + '.json')])
@@ -657,9 +700,12 @@ const PromptNode = ({ data, id, type: node_type }) => {
                                 for(let m = 0; m < tmpCacheData.length; m++){
                                     for(let n = 0; n < tmpCacheData[m]['eval_res']['items'].length; n++){
                                         tmpArray.push(JSON.stringify(tmpCacheData[m]['eval_res']['items'][n]))
+                                        tmpPromptToArray.push(JSON.stringify(tmpCacheData[m]['eval_res']['items'][n]))
                                     }
                                     
                                 }
+
+                                promptAndArray[edges[i].targetHandle] = tmpPromptToArray;
 
 
                                 
@@ -670,18 +716,22 @@ const PromptNode = ({ data, id, type: node_type }) => {
                 }
 
 
-                console.log('==tmpArray==', tmpArray,'getNode', getNode(id), getNode(id).data.prompt);
+                console.log('promptAndArray', promptAndArray,'==tmpArray==', tmpArray,'getNode', getNode(id), getNode(id).data.prompt, );
+
                 if(getNode(id).data && getNode(id).data.prompt){
-                    const matchList = getNode(id).data.prompt.match(/\{([^}]+)\}/);
-                    let tmpPrompt = ""
-                    if (matchList) {
-                        tmpPrompt = matchList[1];
-                        console.log(tmpPrompt);
-                    } 
-                    pulled_data = {}
+                    // const matchList = getNode(id).data.prompt.match(/\{([^}]+)\}/);
+                    // let tmpPrompt = ""
+                    // if (matchList) {
+                    //     tmpPrompt = matchList[1];
+                    //     console.log("=tmpPrompt=", tmpPrompt, );
+                    // } 
+                    // pulled_data = {}
                     
-                    pulled_data[tmpPrompt] =  tmpArray;
+                    // pulled_data[tmpPrompt] =  tmpArray;
     
+                    // console.log('==pulled_data==', pulled_data);
+
+                    pulled_data = {...promptAndArray}
                     console.log('==pulled_data==', pulled_data);
                     
                     query_llms()
@@ -793,6 +843,8 @@ const PromptNode = ({ data, id, type: node_type }) => {
         className="grouped-handle"
         style={{ top: '50%' }}
     />
+
+
     <TemplateHooks vars={templateVars} nodeId={id} startY={hooksY} ignoreHandles={['__past_chats']} />
     <hr />
     <div>
