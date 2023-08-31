@@ -471,11 +471,11 @@ def makeFetchCall():
     body_json['total_seconds'] = str(response.elapsed.total_seconds())
     response._content = dumps(body_json).encode()
 
-    print('req==>>', ({
-        'url': url,
-        'headers': headers,
-        'body': body
-    }), '==makeFetchCall response==', response.json(), 'total_seconds==',  response.elapsed.total_seconds())
+    # print('req==>>', ({
+    #     'url': url,
+    #     'headers': headers,
+    #     'body': body
+    # }), '==makeFetchCall response==', response.json(), 'total_seconds==',  response.elapsed.total_seconds())
 
     if response.status_code == 200:
         ret = jsonify({'response': response.json()})
