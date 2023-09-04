@@ -6,7 +6,7 @@ import ReactFlow, {
   Controls,
   Background,
 } from 'react-flow-renderer';
-import { Button, Menu, LoadingOverlay, Text, Box, List, Loader, Header, Chip, Badge, Card, Accordion, Tooltip } from '@mantine/core';
+import { Button, Menu, LoadingOverlay, Text, Box, List, Loader, Header, Chip, Badge, Card, Accordion, Tooltip, Switch } from '@mantine/core';
 import { useClipboard } from '@mantine/hooks';
 import { IconSettings, IconTextPlus, IconTerminal, IconCsv, IconSettingsAutomation, IconFileSymlink, IconRobot } from '@tabler/icons-react';
 import TextFieldsNode from './TextFieldsNode'; // Import a custom node
@@ -654,6 +654,26 @@ const App = () => {
     };
   }, []);
 
+  const localSwitchState = localStorage.getItem('switchState');
+  let formatLocalSwitchState = null;
+  if (localSwitchState !== null) {
+    if(localSwitchState === 'true'){
+      formatLocalSwitchState = true;
+    } else {
+      formatLocalSwitchState = false;
+    }
+  } else {
+    formatLocalSwitchState = false;
+  }
+  const [switchState, setSwitchState] = useState(formatLocalSwitchState);
+
+
+  useEffect(() => {
+    console.log('==setLocal', switchState.toString())
+    
+    localStorage.setItem('switchState', switchState.toString());
+  }, [switchState]);
+
   if (!IS_ACCEPTED_BROWSER) {
     return (
       <Box maw={600} mx='auto' mt='40px'>
@@ -738,7 +758,30 @@ const App = () => {
         </Menu>
         <Button onClick={exportFlow} size="sm" variant="outline" compact mr='xs'>Export</Button>
         <Button onClick={importFlowFromFile} size="sm" variant="outline" compact>Import</Button>
+
+
+
       </div>
+
+
+        <div style={{ position: 'fixed', top : '50px', left: '10px', height: "30px", zIndex: 8}}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            userSelect: 'none'
+          }}>
+          <Switch
+              label="Auto Run"
+              checked={switchState}
+              onChange={(event) => { 
+                console.log('==event', event.currentTarget.checked)
+                setSwitchState(event.currentTarget.checked)
+              }}
+            />
+        </div>
+
+        </div>
       <div style={{position: 'fixed', right: '10px', top: '10px', zIndex: 8}}>
         {IS_RUNNING_LOCALLY ? (<></>) : (
           <Button onClick={onClickShareFlow} 
@@ -749,6 +792,8 @@ const App = () => {
             {clipboard.copied ? 'Link copied!' : (waitingForShare ? 'Sharing...' : 'Share')}
           </Button>
         )}
+
+
         <Button onClick={onClickNewFlow} size="sm" variant="outline" compact mr='xs' style={{float: 'left'}}> New Flow </Button>
         <Button onClick={onClickExamples} size="sm" variant="filled" compact mr='xs' style={{float: 'left'}}> Example Flows </Button>
         <Button onClick={onClickSettings} size="sm" variant="gradient" compact><IconSettings size={"90%"} /></Button>

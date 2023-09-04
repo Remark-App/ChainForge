@@ -135,13 +135,28 @@ const EvaluatorNode = ({ data, id }) => {
     });
   }, []);
 
+  const localSwitchState = localStorage.getItem('switchState');
+  let formatLocalSwitchState = null;
+  if (localSwitchState !== null) {
+    if(localSwitchState === 'true'){
+      formatLocalSwitchState = true;
+    } else {
+      formatLocalSwitchState = false;
+    }
+  } else {
+    formatLocalSwitchState = false;
+  }
+
   // On upstream changes
   useEffect(() => {
     if (data.refresh && data.refresh === true) {
       setDataPropsForNode(id, { refresh: false });
       setStatus("warning");
       console.log("==upstream changes==");
-      handleRunClick();
+      if(formatLocalSwitchState === true) {
+        handleRunClick();
+      }
+
     }
   }, [data]);
 

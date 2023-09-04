@@ -210,6 +210,18 @@ const PromptNode = ({ data, id, type: node_type }) => {
     });
   }, []);
 
+  const localSwitchState = localStorage.getItem('switchState');
+  let formatLocalSwitchState = null;
+  if (localSwitchState !== null) {
+    if(localSwitchState === 'true'){
+      formatLocalSwitchState = true;
+    } else {
+      formatLocalSwitchState = false;
+    }
+  } else {
+    formatLocalSwitchState = false;
+  }
+
   // On upstream changes
   useEffect(() => {
     if (data.refresh && data.refresh === true) {
@@ -240,7 +252,11 @@ const PromptNode = ({ data, id, type: node_type }) => {
 
     if(is_fully_connected){
 
-      handleRunClick()
+        if(formatLocalSwitchState === true){
+            handleRunClick()
+        }
+
+
     }
 
       
