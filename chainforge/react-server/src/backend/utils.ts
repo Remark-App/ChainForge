@@ -238,16 +238,16 @@ export async function call_chatgpt(prompt: string, model: LLM, n: number = 1, te
  */
 export async function call_azure_openai(prompt: string, model: LLM, n: number = 1, temperature: number = 1.0, params?: Dict): Promise<[Dict, Dict]> {
   if (!AZURE_OPENAI_KEY)
-    throw Error("Could not find an Azure OpenAPI Key to use. Double-check that your key is set in Settings or in your local environment.");
+    throw new Error("Could not find an Azure OpenAPI Key to use. Double-check that your key is set in Settings or in your local environment.");
   if (!AZURE_OPENAI_ENDPOINT)
-    throw Error("Could not find an Azure OpenAI Endpoint to use. Double-check that your endpoint is set in Settings or in your local environment.");
+    throw new Error("Could not find an Azure OpenAI Endpoint to use. Double-check that your endpoint is set in Settings or in your local environment.");
   
   const deployment_name: string = params?.deployment_name;
   const model_type: string = params?.model_type;
   if (!deployment_name)
-    throw Error("Could not find an Azure OpenAPI deployment name. Double-check that your deployment name is set in Settings or in your local environment.");
+    throw new Error("Could not find an Azure OpenAPI deployment name. Double-check that your deployment name is set in Settings or in your local environment.");
   if (!model_type)
-    throw Error("Could not find a model type specified for an Azure OpenAI model. Double-check that your deployment name is set in Settings or in your local environment.");
+    throw new Error("Could not find a model type specified for an Azure OpenAI model. Double-check that your deployment name is set in Settings or in your local environment.");
 
   const client = new AzureOpenAIClient(AZURE_OPENAI_ENDPOINT, new AzureKeyCredential(AZURE_OPENAI_KEY));
 
@@ -311,12 +311,12 @@ export async function call_azure_openai(prompt: string, model: LLM, n: number = 
  */
 export async function call_anthropic(prompt: string, model: LLM, n: number = 1, temperature: number = 1.0, params?: Dict): Promise<[Dict, Dict]> {
   if (!ANTHROPIC_API_KEY)
-    throw Error("Could not find an API key for Anthropic models. Double-check that your API key is set in Settings or in your local environment.");
+    throw new Error("Could not find an API key for Anthropic models. Double-check that your API key is set in Settings or in your local environment.");
 
   // Wrap the prompt in the provided template, or use the default Anthropic one
   const custom_prompt_wrapper: string = params?.custom_prompt_wrapper || (ANTHROPIC_HUMAN_PROMPT + " {prompt}" + ANTHROPIC_AI_PROMPT);
   if (!custom_prompt_wrapper.includes('{prompt}'))
-    throw Error("Custom prompt wrapper is missing required {prompt} template variable.");
+    throw new Error("Custom prompt wrapper is missing required {prompt} template variable.");
   const prompt_wrapper_template = new StringTemplate(custom_prompt_wrapper);
   let wrapped_prompt = prompt_wrapper_template.safe_substitute({prompt: prompt});
 
@@ -405,7 +405,7 @@ export async function call_anthropic(prompt: string, model: LLM, n: number = 1, 
  */
 export async function call_google_palm(prompt: string, model: LLM, n: number = 1, temperature: number = 0.7, params?: Dict): Promise<[Dict, Dict]> {
   if (!GOOGLE_PALM_API_KEY)
-    throw Error("Could not find an API key for Google PaLM models. Double-check that your API key is set in Settings or in your local environment.");
+    throw new Error("Could not find an API key for Google PaLM models. Double-check that your API key is set in Settings or in your local environment.");
 
   const is_chat_model = model.toString().includes('chat');
 
@@ -499,9 +499,9 @@ export async function call_google_palm(prompt: string, model: LLM, n: number = 1
   // the current chat completions API provides users no control over the blocking.
   // We need to detect this and fill the response with the safety reasoning:
   if (completion.filters && completion.filters.length > 0) {
-      // Request was blocked. Output why in the response text, repairing the candidate dict to mock up 'n' responses
-      const block_error_msg = `[[BLOCKED_REQUEST]] Request was blocked because it triggered safety filters: ${JSON.stringify(completion.filters)}`
-      completion.candidates = new Array(n).fill({'author': '1', 'content':block_error_msg});
+    // Request was blocked. Output why in the response text, repairing the candidate dict to mock up 'n' responses
+    const block_error_msg = `[[BLOCKED_REQUEST]] Request was blocked because it triggered safety filters: ${JSON.stringify(completion.filters)}`
+    completion.candidates = new Array(n).fill({'author': '1', 'content':block_error_msg});
   }
 
   // Weirdly, google ignores candidate_count if temperature is 0. 
@@ -637,6 +637,40 @@ export async function call_huggingface(prompt: string, model: LLM, n: number = 1
   return [query, responses];
 }
 
+async function call_custom_provider(prompt: string, model: LLM, n: number = 1, temperature: number = 1.0, params?: Dict): Promise<[Dict, Dict]> {
+  if (!APP_IS_RUNNING_LOCALLY())
+    throw new Error("The ChainForge app does not appear to be running locally. You can only call custom model providers if you are running ChainForge on your local machine, from a Flask app.")
+
+  // The model to call is in format:
+  // __custom/<provider_name>/<submodel name> 
+  // It may also exclude the final tag. 
+  // We extract the provider name (this is the name used in the Python backend's `ProviderRegistry`) and optionally, the submodel name
+  const provider_path = model.substring(9);
+  const provider_name = provider_path.substring(0, provider_path.indexOf('/'));
+  const submodel_name = (provider_path.length === provider_name.length-1) ? undefined : provider_path.substring(provider_path.lastIndexOf('/')+1);
+
+  let responses = [];
+  const query = { prompt, model, temperature, ...params };
+
+  // Call the custom provider n times 
+  while (responses.length < n) {
+    let {response, error} = await call_flask_backend('callCustomProvider', 
+      { 'name': provider_name,
+        'params': {
+          prompt, model: submodel_name, temperature, ...params
+      }
+    });
+
+    // Fail if an error is encountered
+    if (error !== undefined || response === undefined)
+      throw new Error(error);
+
+    responses.push(response);
+  }
+  
+  return [query, responses];
+}
+
 /**
  * Switcher that routes the request to the appropriate API call function. If call doesn't exist, throws error.
  */
@@ -660,6 +694,8 @@ export async function call_llm(llm: LLM, prompt: string, n: number, temperature:
     call_api = call_anthropic;
   else if (llm_provider === LLMProvider.HuggingFace)
     call_api = call_huggingface;
+  else if (llm_provider === LLMProvider.Custom)
+    call_api = call_custom_provider;
   
   return call_api(prompt, llm, n, temperature, params);
 }
@@ -672,7 +708,6 @@ export async function call_llm(llm: LLM, prompt: string, n: number, temperature:
  */
 function _extract_openai_chat_choice_content(choice: Dict): string {
   if (choice['finish_reason'] === 'function_call' || 
-     !choice["message"]["content"] ||
      ('function_call' in choice['message'] && choice['message']['function_call'].length > 0)) {
     const func = choice['message']['function_call'];
     return '[[FUNCTION]] ' + func['name'] + func['arguments'].toString();
@@ -760,8 +795,11 @@ export function extract_responses(response: Array<string | Dict> | Dict, llm: LL
     case LLMProvider.HuggingFace:
       return _extract_huggingface_responses(response as Dict[]);
     default:
-      throw new Error(`No method defined to extract responses for LLM ${llm}.`)
-  }    
+      if (Array.isArray(response) && response.length > 0 && typeof response[0] === 'string')
+        return response as string[]; 
+      else 
+        throw new Error(`No method defined to extract responses for LLM ${llm}.`)
+  }
 }
 
 /**

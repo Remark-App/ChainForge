@@ -1,6 +1,8 @@
 # ⛓️🛠️ ChainForge
 **An open-source visual programming environment for battle-testing prompts to LLMs.**
 
+**_(Have you used ChainForge for an actual task? We'd like to interview you! Contact Ian on [Twitter](https://twitter.com/IanArawjo) on via [email](http://ianarawjo.therottingcartridge.com/docs/ian-arawjo-cv.pdf). Interviews help us support the continued development of the project. :)_**
+
 <img width="1517" alt="banner" src="https://github.com/ianarawjo/ChainForge/assets/5251713/570879ef-ef8a-4e00-b37c-b49bc3c1a370">
 
 ChainForge is a data flow prompt engineering environment for analyzing and evaluating LLM responses. It is geared towards early-stage, quick-and-dirty exploration of prompts, chat responses, and response quality that goes beyond ad-hoc chatting with individual LLMs. With ChainForge, you can: 
@@ -9,17 +11,23 @@ ChainForge is a data flow prompt engineering environment for analyzing and evalu
  - **Setup evaluation metrics** (scoring function) and immediately visualize results across prompts, prompt parameters, models, and model settings.
  - **Hold multiple conversations at once across template parameters and chat models.** Template not just prompts, but follow-up chat messages, and inspect and evaluate outputs at each turn of a chat conversation.
  
-ChainForge comes with a number of example evaluation flows to give you a sense of what's possible, including 188 example flows generated from benchmarks in OpenAI evals.
+[Read the docs to learn more.](https://chainforge.ai/docs/) ChainForge comes with a number of example evaluation flows to give you a sense of what's possible, including 188 example flows generated from benchmarks in OpenAI evals.
 
-# Try it @ https://chainforge.ai/play/ 
-
-**This is an open beta of Chainforge.** We support OpenAI models GPT3.5 and GPT4, HuggingFace models on the Inference API, Anthropic's Claude, Google PaLM2, Azure OpenAI endpoints, and [Dalai](https://github.com/cocktailpeanut/dalai)-hosted models Alpaca and Llama. You can change the exact model and individual model settings. Visualization nodes support numeric and boolean evaluation metrics. Try it and let us know what you think! :)
+**This is an open beta of Chainforge.** We support model providers OpenAI, HuggingFace, Anthropic, Google PaLM2, Azure OpenAI endpoints, and [Dalai](https://github.com/cocktailpeanut/dalai)-hosted models Alpaca and Llama. You can change the exact model and individual model settings. Visualization nodes support numeric and boolean evaluation metrics. Try it and let us know what you think! :)
 
 ChainForge is built on [ReactFlow](https://reactflow.dev) and [Flask](https://flask.palletsprojects.com/en/2.3.x/).
 
-# Installation (local machine)
+# Table of Contents
+ - [Documentation](https://chainforge.ai/docs/)
+ - [Installation](#installation)
+ - [Example Experiments](#example-experiments)
+ - [Share with Others](#share-with-others)
+ - [Features](#features) (see the [docs](https://chainforge.ai/docs/nodes/) for more comprehensive info)
+ - [Development and How to Cite](#development)
 
-The web version of ChainForge (https://chainforge.ai/play/) has a limited feature set. In a locally installed version you can load API keys automatically from environment variables, write Python code to evaluate LLM responses, or query locally-run Alpaca/Llama models hosted via Dalai.
+# Installation
+
+You can install ChainForge locally, or try it out on the web at **https://chainforge.ai/play/**. The web version of ChainForge has a limited feature set. In a locally installed version you can load API keys automatically from environment variables, write Python code to evaluate LLM responses, or query locally-run Alpaca/Llama models hosted via Dalai.
 
 To install Chainforge on your machine, make sure you have Python 3.8 or higher, then run
 
@@ -33,7 +41,7 @@ Once installed, do
 chainforge serve
 ```
 
-Open [localhost:8000](http://localhost:8000/) in a Google Chrome or Firefox browser.
+Open [localhost:8000](http://localhost:8000/) in a Google Chrome, Firefox, Microsoft Edge, or Brave browser.
 
 You can set your API keys by clicking the Settings icon in the top-right corner. If you prefer to not worry about this everytime you open ChainForge, we recommend that save your OpenAI, Anthropic, and/or Google PaLM API keys to your local environment. For more details, see the [Installation Guide](https://github.com/ianarawjo/ChainForge/blob/main/INSTALL_GUIDE.md).
 
@@ -94,7 +102,7 @@ For more specific details, see the [Node Guide](https://github.com/ianarawjo/Cha
 
 ChainForge was created by [Ian Arawjo](http://ianarawjo.com/index.html), a postdoctoral scholar in Harvard HCI's [Glassman Lab](http://glassmanlab.seas.harvard.edu/) with support from the Harvard HCI community. Collaborators include PhD students [Priyan Vaithilingam](https://priyan.info) and [Chelse Swoopes](https://seas.harvard.edu/person/chelse-swoopes) and faculty members [Elena Glassman](http://glassmanlab.seas.harvard.edu/glassman.html) and [Martin Wattenberg](https://www.bewitched.com/about.html).
 
-This work was partially funded by the NSF grant IIS-2107391. Any opinions, findings, and conclusions or recommendations expressed in this material are those of the author(s) and do not necessarily reflect the views of the National Science Foundation.
+This work was partially funded by the NSF grants IIS-2107391, IIS-2040880, and IIS-1955699. Any opinions, findings, and conclusions or recommendations expressed in this material are those of the author(s) and do not necessarily reflect the views of the National Science Foundation.
 
 We provide ongoing releases of this tool in the hopes that others find it useful for their projects.
 
