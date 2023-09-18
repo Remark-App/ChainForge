@@ -232,12 +232,7 @@ return (
                   />
                   <br />
 
-                  <TextInput
-                    label="REPLICATE_API_TOKEN"
-                    placeholder="Paste your REPLICATE_API_TOKEN here"
-                    {...form.getInputProps('REPLICATE_API_TOKEN')}
-                  />
-                  <br />
+
 
                   <Divider my="xs" label="Microsoft Azure" labelPosition="center" />
                   <TextInput
