@@ -206,6 +206,23 @@ const LLMResponseInspector = ({ jsonResponses, wideFormat }) => {
     const response_box_colors = ['#eee', '#fff', '#eee', '#ddd', '#eee', '#ddd', '#eee'];
     const rgroup_color = (depth) => response_box_colors[depth % response_box_colors.length];
 
+    const calc_total = (resps, key, toFiexdValue) =>{
+      let result = 0;
+      for (let m = 0; m < resps.length; m++) {
+        if (resps[m].llm === "LLAMA2") {
+          for (let n = 0; n < resps[m].raw_response.length; n++) {
+            let jsonStr = resps[m].raw_response[n];
+            const tmpRes = JSON.parse(jsonStr);
+            result = Number(result) + Number(tmpRes[key]);
+          }
+        }
+      }
+      if(toFiexdValue){
+        result = result.toFixed(toFiexdValue)
+      }
+      return String(result);
+    }
+
     const getHeaderBadge = (key, val, depth) => {
       if (val) {
         const s = truncStr(val.trim(), 1024);
@@ -243,7 +260,11 @@ const LLMResponseInspector = ({ jsonResponses, wideFormat }) => {
               <p className="small-response-metrics">{getEvalResultStr(resp_str_to_eval_res[r])}</p>
             ) : <></>}
             {(contains_eval_res && onlyShowScores) ? <pre>{}</pre> : 
-              <pre className="small-response">{r}</pre>}
+              
+              
+              (res_obj.llm === "LLAMA2" ? <pre className="small-response">{(JSON.parse(r)).response_str}</pre> : <pre className="small-response">{r}</pre>)
+              
+              }
           </div>
         ));
 
@@ -265,7 +286,27 @@ const LLMResponseInspector = ({ jsonResponses, wideFormat }) => {
                 {eatenvars.includes('LLM') ?
                       ps
                     : (<div className="response-item-llm-name-wrapper">
-                        <h1>{res_obj.llm} <br></br>{JSON.stringify(res_obj.tokens, null, 2)}</h1>
+                      
+                        <h1>{res_obj.llm} <br></br><pre style={{'textAlign': 'left'}}>{
+                          res_obj.tokens.total_seconds === "NaN" ? JSON.stringify({
+                            'total_seconds': calc_total(resps, 'seconds', 3),
+                            'CPU_public': calc_total(resps, 'CPU_public', 6),
+                            'CPU_private': calc_total(resps, 'CPU_private', 6),
+                            'Nvidia_T4_GPU_public': calc_total(resps, 'Nvidia_T4_GPU_public', 6),
+                            'Nvidia_T4_GPU_private': calc_total(resps, 'Nvidia_T4_GPU_private',6),
+                            'Nvidia_A40_GPU_public': calc_total(resps, 'Nvidia_A40_GPU_public', 6),
+                            'Nvidia_A40_GPU_private': calc_total(resps, 'Nvidia_A40_GPU_private', 6),
+                            'Nvidia_A40_Large_GPU_public': calc_total(resps, 'Nvidia_A40_Large_GPU_public', 6),
+                            'Nvidia_A40_Large_GPU_private': calc_total(resps, 'Nvidia_A40_Large_GPU_private', 6),
+                            'Nvidia_A100_40GB_GPU_public': calc_total(resps, 'Nvidia_A100_40GB_GPU_public', 6),
+                            'Nvidia_A100_40GB_GPU_private': calc_total(resps, 'Nvidia_A100_40GB_GPU_private', 6),
+                            'Nvidia_A100_80GB_GPU_public': calc_total(resps, 'Nvidia_A100_80GB_GPU_public', 6),
+                            'Nvidia_A100_80GB_GPU_private': calc_total(resps, 'Nvidia_A100_80GB_GPU_private', 6),
+                            'Nvidia_8xA40_Large_GPU_public': calc_total(resps, 'Nvidia_8xA40_Large_GPU_public', 6),
+                            'Nvidia_8xA40_Large_GPU_private': calc_total(resps, 'Nvidia_8xA40_Large_GPU_private', 6),
+                          }, null, 2) : JSON.stringify(res_obj.tokens, null, 2)
+                      }</pre></h1>
+                      <div></div>
                         {ps}
                       </div>)
                 }

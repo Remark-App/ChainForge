@@ -126,17 +126,17 @@ function to_standard_format(r: LLMResponseObject | Dict): StandardizedLLMRespons
 
   if(Object.keys(resp_obj.tokens).length === 0){
     
-    let all_total_secondes: string = '0';
-    let tmp_total_secondes: number = 0;
+    let all_total_seconds: string = '0';
+    let tmp_total_seconds: number = 0;
 
     for(let i = 0; i<resp_obj.raw_response.length; i++){
-      tmp_total_secondes = tmp_total_secondes +  Number(resp_obj.raw_response[i].total_seconds) 
+      tmp_total_seconds = tmp_total_seconds +  Number(resp_obj.raw_response[i].total_seconds) 
     }
 
-    all_total_secondes = tmp_total_secondes.toFixed(3).toString();
+    all_total_seconds = tmp_total_seconds.toFixed(3).toString();
 
     resp_obj.tokens = {
-      'total_secondes': all_total_secondes
+      'total_seconds': all_total_seconds
     }
 
 

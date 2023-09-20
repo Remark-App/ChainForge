@@ -1,6 +1,8 @@
 from chainforge.providers import provider
 import replicate
 import os
+import time 
+import json
 
 REPLICATE_API_TOKEN = os.environ["REPLICATE_API_TOKEN"]
 
@@ -65,11 +67,61 @@ def LLAMA2Completion(prompt: str, model: str, temperature: float = 0.75, **kwarg
 
     print('true_model=='+true_model)
 
+    machine_types = {
+      "CPU": {"public": 0.000100, "private": 0.000200},
+      "Nvidia T4 GPU": {"public": 0.000225, "private": 0.000550},
+      "Nvidia A40 GPU": {"public": 0.000575, "private": 0.001300},
+      "Nvidia A40 (Large) GPU": {"public": 0.000725, "private": 0.001600},
+      "Nvidia A100 (40GB) GPU": {"public": 0.001150, "private": 0.002300},
+      "Nvidia A100 (80GB) GPU": {"public": 0.001400, "private": 0.003200},
+      "8x Nvidia A40 (Large) GPU": {"public": 0.005800, "private": 0.005800},
+    }
 
+
+    start_time = time.perf_counter()
 
     response = replicate.run(
             true_model,
             input={
                    "prompt": prompt,
             })
-    return ''.join(response)
+    
+    response_str =''.join(response)
+    end_time = time.perf_counter()
+    execution_time = round(end_time - start_time, 3)
+
+    CPU_public = round(machine_types["CPU"]["public"] * execution_time , 6)
+    CPU_private = round(machine_types["CPU"]["private"] * execution_time , 6)
+    Nvidia_T4_GPU_public = round(machine_types["Nvidia T4 GPU"]["public"] * execution_time , 6)
+    Nvidia_T4_GPU_private = round(machine_types["Nvidia T4 GPU"]["private"] * execution_time , 6)
+    # 待补全
+    Nvidia_A40_GPU_public = round(machine_types["Nvidia A40 GPU"]["public"] * execution_time , 6)
+    Nvidia_A40_GPU_private = round(machine_types["Nvidia A40 GPU"]["private"] * execution_time , 6)
+    Nvidia_A40_Large_GPU_public = round(machine_types["Nvidia A40 (Large) GPU"]["public"] * execution_time , 6)
+    Nvidia_A40_Large_GPU_private = round(machine_types["Nvidia A40 (Large) GPU"]["private"] * execution_time , 6)
+    Nvidia_A100_40GB_GPU_public = round(machine_types["Nvidia A100 (40GB) GPU"]["public"] * execution_time , 6)
+    Nvidia_A100_40GB_GPU_private = round(machine_types["Nvidia A100 (40GB) GPU"]["private"] * execution_time , 6)
+    Nvidia_A100_80GB_GPU_public = round(machine_types["Nvidia A100 (80GB) GPU"]["public"] * execution_time , 6)
+    Nvidia_A100_80GB_GPU_private = round(machine_types["Nvidia A100 (80GB) GPU"]["private"] * execution_time , 6)
+    Nvidia_8xA40_Large_GPU_public = round(machine_types["8x Nvidia A40 (Large) GPU"]["public"] * execution_time , 6)
+    Nvidia_8xA40_Large_GPU_private = round(machine_types["8x Nvidia A40 (Large) GPU"]["private"] * execution_time , 6)
+
+
+
+    return json.dumps({'response_str': response_str, 
+                       'seconds': execution_time, 
+                       'CPU_public': CPU_public, 
+                       'CPU_private': CPU_private, 
+                       'Nvidia_T4_GPU_public': Nvidia_T4_GPU_public,  
+                       'Nvidia_T4_GPU_private': Nvidia_T4_GPU_private,
+                       'Nvidia_A40_GPU_public': Nvidia_A40_GPU_public,
+                       'Nvidia_A40_GPU_private': Nvidia_A40_GPU_private,
+                       'Nvidia_A40_Large_GPU_public': Nvidia_A40_Large_GPU_public,
+                       'Nvidia_A40_Large_GPU_private': Nvidia_A40_Large_GPU_private,
+                       'Nvidia_A100_40GB_GPU_public': Nvidia_A100_40GB_GPU_public,
+                       'Nvidia_A100_40GB_GPU_private': Nvidia_A100_40GB_GPU_private,
+                       'Nvidia_A100_80GB_GPU_public': Nvidia_A100_80GB_GPU_public,
+                       'Nvidia_A100_80GB_GPU_private': Nvidia_A100_80GB_GPU_private,
+                       'Nvidia_8xA40_Large_GPU_public': Nvidia_8xA40_Large_GPU_public,
+                       'Nvidia_8xA40_Large_GPU_private': Nvidia_8xA40_Large_GPU_private
+                      })
