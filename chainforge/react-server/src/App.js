@@ -725,7 +725,7 @@ const App = () => {
             nodes={nodes}
             edges={edges}
             nodeTypes={nodeTypes}
-            zoomOnPinch={false}
+            zoomOnPinch={true}
             zoomOnScroll={false}
             panOnScroll={true}
             // connectionLineComponent={AnimatedConnectionLine}

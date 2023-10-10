@@ -134,7 +134,7 @@ export function LLMList({llms, onItemsChange}) {
   }, [llms]);
 
   return (
-    <div className="list nowheel nodrag">
+    <div className="list nodrag">
       <ModelSettingsModal ref={settingsModal} model={selectedModel} onSettingsSubmit={onSettingsSubmit} />
       <DragDropContext onDragEnd={onDragEnd}>
         <StrictModeDroppable
@@ -262,10 +262,10 @@ export const LLMListContainer = forwardRef(({description, modelSelectButtonText,
     refreshLLMProviderList,
   }));
 
-  return (<div className="llm-list-container nowheel">
+  return (<div className="llm-list-container ">
     <div className="llm-list-backdrop">
       {description || "Models to query:"}
-      <div className="add-llm-model-btn nodrag">
+      <div className="add-llm-model-btn">
         <Menu transitionProps={{ transition: 'pop-top-left' }}
             position="bottom-start"
             width={220}
