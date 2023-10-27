@@ -6,7 +6,7 @@ import ReactFlow, {
   Controls,
   Background,
 } from 'react-flow-renderer';
-import { Button, Menu, LoadingOverlay, Text, Box, List, Loader, Header, Chip, Badge, Card, Accordion, Tooltip, Switch } from '@mantine/core';
+import { Button, Menu, LoadingOverlay, Text, Box, List, Loader, Header, Chip, Badge, Card, Accordion, Tooltip, Switch, JsonInput, Modal , Textarea} from '@mantine/core';
 import { useClipboard } from '@mantine/hooks';
 import { IconSettings, IconTextPlus, IconTerminal, IconCsv, IconSettingsAutomation, IconFileSymlink, IconRobot, IconRuler2 } from '@tabler/icons-react';
 import TextFieldsNode from './TextFieldsNode'; // Import a custom node
@@ -28,6 +28,8 @@ import { v4 as uuid } from 'uuid';
 import LZString from 'lz-string';
 import { EXAMPLEFLOW_1 } from './example_flows';
 import './text-fields-node.css';
+import { isArray } from 'lodash';
+
 
 // State management (from https://reactflow.dev/docs/guides/state-management/)
 import { shallow } from 'zustand/shallow';
@@ -40,6 +42,70 @@ import { APP_IS_RUNNING_LOCALLY } from './backend/utils';
 import { isMobile, isChrome, isFirefox, isEdgeChromium, isChromium } from 'react-device-detect';
 import SimpleEvalNode from './SimpleEvalNode';
 const IS_ACCEPTED_BROWSER = (isChrome || isChromium || isEdgeChromium || isFirefox || navigator?.brave !== undefined) && !isMobile;
+
+function TextFieldsNodesJsonInput(props) {
+
+
+  const {showJsonInput, setShowJsonInput, importTextFieldsInfoList, setImportTextFieldsInfoList, autoInputFieldInfo} = props;
+
+  const [importTextFieldsInfoListStr, setImportTextFieldsInfoListStr] = useState(JSON.stringify(importTextFieldsInfoList))
+
+  const [checkResult ,setCheckResult] = useState(true);
+
+
+  useEffect(()=>{
+
+    try {
+      const newImportTextFieldsInfoList = JSON.parse(importTextFieldsInfoListStr)
+
+      if(isArray(newImportTextFieldsInfoList)){
+        setCheckResult(true)
+        setImportTextFieldsInfoList(newImportTextFieldsInfoList)
+      } else {
+        setCheckResult(false)
+      }
+
+    } catch(e) {
+      console.log('--e--', e);
+      setCheckResult(false)
+    }
+  }, [importTextFieldsInfoListStr])
+
+
+
+  return (
+
+    <Modal size='xl' opened={showJsonInput} onClose={()=>{
+      setShowJsonInput(false)
+    }} title={<div><span style={{fontSize: '14pt'}}>Import JSON Array</span></div>} closeOnClickOutside={true} style={{position: 'relative', 'left': '-5%'}}>    
+    
+    <Textarea
+
+      placeholder="Textarea will autosize to fit the content"
+      onChange={(event)=>{
+        setImportTextFieldsInfoListStr(event.currentTarget.value)
+
+      }}
+      autosize
+      minRows={4}
+      value={importTextFieldsInfoListStr}
+    />
+    <div style={{
+      height: '20px'
+    }}></div>
+
+
+
+    <Button disabled={checkResult === false} onClick={()=>{
+      autoInputFieldInfo()
+      setShowJsonInput(false)
+    }}>Submit</Button>
+    </Modal>  
+
+
+  );
+}
+
 
 const selector = (state) => ({
   nodes: state.nodes,
@@ -170,6 +236,16 @@ const App = () => {
     const { x, y } = getViewportCenter();
     addNode({ id: 'textFieldsNode-'+Date.now(), type: 'textfields', data: {}, position: {x: x-200, y:y-100} });
   };
+
+
+  const autoAddTextFieldsNode = ({data, position})=>{
+
+    console.log('autoAddTextFieldsNode==', {data, position})
+
+    addNode({ id: 'textFieldsNode-'+Date.now(), type: 'textfields', data: data, position: position });
+
+  }
+
   const addPromptNode = () => {
     const { x, y } = getViewportCenter();
     addNode({ id: 'promptNode-'+Date.now(), type: 'prompt', data: { prompt: '' }, position: {x: x-200, y:y-100} });
@@ -684,6 +760,46 @@ const App = () => {
     localStorage.setItem('switchState', switchState.toString());
   }, [switchState]);
 
+  const [importTextFieldsInfoList, setImportTextFieldsInfoList] = useState([
+    {
+    title: "world", 
+    content: "This is a world of xxx",
+    },
+    {
+    title: "tagline", 
+    content: "You are a gate keeper looking to join Harvard College",
+    },
+  ])
+
+  const [showJsonInput, setShowJsonInput] = useState(false);
+
+  const autoInputFieldInfo = ()=>{
+    
+      importTextFieldsInfoList.map((v, index) => {
+        const { x, y } = getViewportCenter();
+
+        setTimeout(()=>{
+          autoAddTextFieldsNode({
+            data: {
+              "fields": {
+                "f1": v.content
+              },
+              "title": v.title
+            },
+            position: {
+              x: x - 200,
+              y: y - 200*index
+            }
+          })
+
+        }, index * 300)
+
+      })
+    
+  }
+
+
+
   if (!IS_ACCEPTED_BROWSER) {
     return (
       <Box maw={600} mx='auto' mt='40px'>
@@ -704,6 +820,13 @@ const App = () => {
   }
   else return (
     <div>
+      <TextFieldsNodesJsonInput 
+      showJsonInput={showJsonInput}
+      setShowJsonInput={setShowJsonInput}
+      importTextFieldsInfoList={importTextFieldsInfoList} 
+      setImportTextFieldsInfoList={setImportTextFieldsInfoList} 
+      autoInputFieldInfo={autoInputFieldInfo} 
+      />
       <GlobalSettingsModal ref={settingsModal} alertModal={alertModal} />
       <AlertModal ref={alertModal} />
       <LoadingOverlay visible={isLoading} overlayBlur={1} />
@@ -804,6 +927,16 @@ const App = () => {
 
         <Button onClick={exportFlow} size="sm" variant="outline" bg="#eee" compact mr='xs'>Export</Button>
         <Button onClick={importFlowFromFile} size="sm" variant="outline" bg="#eee" compact>Import</Button>
+        <span style={{
+          display: 'inline-block',
+          width: '20px'
+        }}></span>
+        <Button size='sm' variant="outline" bg="#eee" compact mr='xs'
+        
+        onClick={()=>{
+          setShowJsonInput(!showJsonInput)
+        }}
+        >Auto Import TextFields Nodes</Button>
       </div>
 
 
@@ -822,6 +955,7 @@ const App = () => {
                 setSwitchState(event.currentTarget.checked)
               }}
             />
+          
         </div>
 
         </div>

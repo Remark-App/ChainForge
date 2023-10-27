@@ -11,7 +11,7 @@ import { IconTable, IconLayoutList } from '@tabler/icons-react';
 import * as XLSX from 'xlsx';
 import useStore from './store';
 import { filterDict } from './backend/utils';
-
+import {CopyToClipboard} from 'react-copy-to-clipboard';
 // Helper funcs
 const truncStr = (s, maxLen) => {
   if (s.length > maxLen) // Cut the name short if it's long
@@ -262,7 +262,46 @@ const LLMResponseInspector = ({ jsonResponses, wideFormat }) => {
             {(contains_eval_res && onlyShowScores) ? <pre>{}</pre> : 
               
               
-              ((res_obj.llm === "LLAMA2" || res_obj.llm === "DEEPINFRA" ) ? <pre className="small-response">{(JSON.parse(r)).response_str}</pre> : <pre className="small-response">{r}</pre>)
+              ((res_obj.llm === "LLAMA2" || res_obj.llm === "DEEPINFRA" ) ? 
+              <div style={{
+                position: 'relative'
+              }}>
+                <CopyToClipboard text={(JSON.parse(r)).response_str}
+                  onClick={()=>{
+                    console.log('copy=success=', (JSON.parse(r)).response_str)
+                  }}
+                >
+                  <button style={{
+                    position: 'absolute',
+                    right: 0,
+                    top: 0,
+                  }}>Copy to clipboard with button</button>
+                </CopyToClipboard>
+
+                <pre className="small-response">{(JSON.parse(r)).response_str}</pre>
+              </div>
+
+               : 
+
+               <div style={{
+                position: 'relative'
+              }}>
+                <CopyToClipboard text={r}
+                  onClick={()=>{
+                    console.log('copy=success=', r)
+                  }}
+                >
+                  <button style={{
+                    position: 'absolute',
+                    right: 0,
+                    top: 0,
+                  }}>Copy to clipboard with button</button>
+                </CopyToClipboard>
+    
+
+                  <pre className="small-response">{r}</pre>
+                </div>
+               )
               
               }
           </div>

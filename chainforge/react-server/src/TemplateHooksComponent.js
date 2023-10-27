@@ -67,7 +67,7 @@ export default function TemplateHooks({
         const className = names_to_blink.includes(name)
           ? "hook-tag text-blink"
           : "hook-tag";
-        const style = { top: idx * 28 + startY + "px", background: "red" };
+        const style = { top: idx * 50 + startY + 14 + "px", background: "#FF0000", height: '30px' };
         return (
           <div
             key={name}
