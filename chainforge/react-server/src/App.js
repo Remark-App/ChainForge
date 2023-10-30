@@ -229,6 +229,13 @@ const App = () => {
   const getViewportCenter = () => {
     const { centerX, centerY } = getWindowCenter();
     const { x, y } = rfInstance.getViewport();
+
+    console.log({
+      centerX,
+      centerY,
+      x,
+      y
+    })
     return ({x: -x+centerX, y:-y+centerY});
   }
 
