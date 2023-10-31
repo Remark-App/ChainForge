@@ -615,7 +615,7 @@ const PromptNode = ({ data, id, type: node_type }) => {
     setProgressAnimated(true);
 
     // Pull the data to fill in template input variables, if any
-    const pulled_data = pullInputData(templateVars, id);
+    let pulled_data = pullInputData(templateVars, id);
     const prompt_template = promptText;
 
     const rejected = (err) => {
