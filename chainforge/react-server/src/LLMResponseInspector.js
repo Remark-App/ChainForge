@@ -323,7 +323,7 @@ const LLMResponseInspector = ({ jsonResponses, wideFormat }) => {
 
             let result = <div>{ps}</div>
 
-            console.log('res_obj.llm',res_obj.llm , '==resps==', resps)
+            // console.log('res_obj.llm',res_obj.llm , '==resps==', resps)
             if(res_obj.llm === 'LLAMA2') {
                 result = (<div className="response-item-llm-name-wrapper">
                 <h1>{res_obj.llm} <br></br><pre style={{'textAlign': 'left'}}>{
@@ -591,7 +591,7 @@ const LLMResponseInspector = ({ jsonResponses, wideFormat }) => {
                     value={multiSelectValue}
                     clearSearchOnChange={true}
                     clearSearchOnBlur={true}
-                    w='80%' />
+                    w={wideFormat ? '80%' : '100%'} />
         <Checkbox checked={onlyShowScores} 
                   label="Only show scores" 
                   onChange={(e) => setOnlyShowScores(e.currentTarget.checked)}

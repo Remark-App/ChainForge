@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { Handle, useUpdateNodeInternals } from "react-flow-renderer";
-import { Badge } from "@mantine/core";
-import useStore from "./store";
+import React, { useCallback, useEffect, useState } from 'react';
+import { Handle, useUpdateNodeInternals } from 'reactflow';
+import { Badge } from '@mantine/core';
+import useStore from './store'
 
 export const extractBracketedSubstrings = (text) => {
   /** Given some text in template format:

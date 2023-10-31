@@ -394,9 +394,9 @@ function run_over_responses(eval_func: (resp: ResponseInfo) => any, responses: A
  * @param vars a dict of the template variables to fill the prompt template with, by name. (See countQueries docstring for more info).
  * @returns An array of strings representing the prompts that will be sent out. Note that this could include unfilled template vars.
  */
-export async function generatePrompts(root_prompt: string, vars: Dict): Promise<string[]> {  
+export async function generatePrompts(root_prompt: string, vars: Dict): Promise<PromptTemplate[]> {  
   const gen_prompts = new PromptPermutationGenerator(root_prompt);
-  const all_prompt_permutations = Array.from(gen_prompts.generate(vars)).map(p => p.toString());
+  const all_prompt_permutations = Array.from(gen_prompts.generate(vars));
   return all_prompt_permutations;
 }
 
@@ -571,6 +571,7 @@ export async function queryLLM(id: string,
   // Ensure llm param is an array
   if (typeof llm === 'string')
     llm = [ llm ];
+
   llm = llm as (Array<string> | Array<Dict>);
 
   await setAPIKeys(api_keys);

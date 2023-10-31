@@ -5,10 +5,12 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import ReactFlow, {
   Controls,
   Background,
-} from 'react-flow-renderer';
+  MiniMap,
+} from 'reactflow';
 import { Button, Menu, LoadingOverlay, Text, Box, List, Loader, Header, Chip, Badge, Card, Accordion, Tooltip, Switch, JsonInput, Modal , Textarea} from '@mantine/core';
 import { useClipboard } from '@mantine/hooks';
-import { IconSettings, IconTextPlus, IconTerminal, IconCsv, IconSettingsAutomation, IconFileSymlink, IconRobot, IconRuler2 } from '@tabler/icons-react';
+import { IconSettings, IconTextPlus, IconTerminal, IconCsv, IconSettingsAutomation, IconFileSymlink, IconRobot, IconRuler2, IconArrowMerge } from '@tabler/icons-react';
+import RemoveEdge from './RemoveEdge';
 import TextFieldsNode from './TextFieldsNode'; // Import a custom node
 import PromptNode from './PromptNode';
 import EvaluatorNode from './EvaluatorNode';
@@ -18,16 +20,20 @@ import ScriptNode from './ScriptNode';
 import AlertModal from './AlertModal';
 import CsvNode from './CsvNode';
 import TabularDataNode from './TabularDataNode';
+import JoinNode from './JoinNode';
 import CommentNode from './CommentNode';
 import GlobalSettingsModal from './GlobalSettingsModal';
 import ExampleFlowsModal from './ExampleFlowsModal';
 import AreYouSureModal from './AreYouSureModal';
 import LLMEvaluatorNode from './LLMEvalNode';
-import { getDefaultModelFormData, getDefaultModelSettings, setCustomProviders } from './ModelSettingSchemas';
+import { getDefaultModelFormData, getDefaultModelSettings } from './ModelSettingSchemas';
 import { v4 as uuid } from 'uuid';
 import LZString from 'lz-string';
 import { EXAMPLEFLOW_1 } from './example_flows';
-import './text-fields-node.css';
+
+// Styling
+import 'reactflow/dist/style.css'; // reactflow
+import './text-fields-node.css'; // project
 import { isArray } from 'lodash';
 
 
@@ -136,8 +142,6 @@ const INITIAL_LLM = () => {
   return falcon7b;
 };
 
-// import AnimatedConnectionLine from './AnimatedConnectionLine';
-
 const nodeTypes = {
   textfields: TextFieldsNode, // Register the custom node
   prompt: PromptNode,
@@ -151,6 +155,11 @@ const nodeTypes = {
   csv: CsvNode,
   table: TabularDataNode,
   comment: CommentNode,
+  join: JoinNode,
+};
+
+const edgeTypes = {
+  default: RemoveEdge,
 };
 
 // Whether we are running on localhost or not, and hence whether
@@ -228,16 +237,16 @@ const App = () => {
   }
   const getViewportCenter = () => {
     const { centerX, centerY } = getWindowCenter();
-    const { x, y } = rfInstance.getViewport();
+    const viewPort = rfInstance.getViewport();
 
-    console.log({
-      centerX,
-      centerY,
-      x,
-      y
-    })
-    return ({x: -x+centerX, y:-y+centerY});
+    const { x, y, zoom } = viewPort;
+
+    const result = ({x: -(x/zoom) + (centerX / zoom), y: -(y/zoom) + (centerY / zoom)})
+
+    return result;
+
   }
+
 
   const addTextFieldsNode = () => {
     const { x, y } = getViewportCenter();
@@ -274,33 +283,37 @@ const App = () => {
       code = "function evaluate(response) {\n  return response.text.length;\n}";
     addNode({ id: 'evalNode-'+Date.now(), type: 'evaluator', data: { language: progLang, code: code }, position: {x: x-200, y:y-100} });
   };
-  const addVisNode = (event) => {
+  const addVisNode = () => {
     const { x, y } = getViewportCenter();
     addNode({ id: 'visNode-'+Date.now(), type: 'vis', data: {}, position: {x: x-200, y:y-100} });
   };
-  const addInspectNode = (event) => {
+  const addInspectNode = () => {
     const { x, y } = getViewportCenter();
     addNode({ id: 'inspectNode-'+Date.now(), type: 'inspect', data: {}, position: {x: x-200, y:y-100} });
   };
-  const addScriptNode = (event) => {
+  const addScriptNode = () => {
     const { x, y } = getViewportCenter();
     addNode({ id: 'scriptNode-'+Date.now(), type: 'script', data: {}, position: {x: x-200, y:y-100} });
   };
-  const addCsvNode = (event) => {
+  const addCsvNode = () => {
     const { x, y } = getViewportCenter();
     addNode({ id: 'csvNode-'+Date.now(), type: 'csv', data: {}, position: {x: x-200, y:y-100} });
   };
-  const addTabularDataNode = (event) => {
+  const addTabularDataNode = () => {
     const { x, y } = getViewportCenter();
     addNode({ id: 'table-'+Date.now(), type: 'table', data: {}, position: {x: x-200, y:y-100} });
   };
-  const addCommentNode = (event) => {
+  const addCommentNode = () => {
     const { x, y } = getViewportCenter();
     addNode({ id: 'comment-'+Date.now(), type: 'comment', data: {}, position: {x: x-200, y:y-100} });
   };
   const addLLMEvalNode = () => {
     const { x, y } = getViewportCenter();
     addNode({ id: 'llmeval-'+Date.now(), type: 'llmeval', data: {}, position: {x: x-200, y:y-100} });
+  };
+  const addJoinNode = () => {
+    const { x, y } = getViewportCenter();
+    addNode({ id: 'join-'+Date.now(), type: 'join', data: {}, position: {x: x-200, y:y-100} });
   };
 
   const onClickExamples = () => {
@@ -373,7 +386,7 @@ const App = () => {
     const uid = (id) => `${id}-${Date.now()}`;
     const starting_nodes = [
       { id: uid('prompt'), type: 'prompt', data: { 
-          prompt: 'Why is the sky blue?',
+          prompt: '',
           n: 1, 
           llms: [INITIAL_LLM()] },
         position: { x: 450, y: 200 } },
@@ -866,6 +879,7 @@ const App = () => {
           >
             <Background color="#999" gap={16} />
             <Controls showZoom={true} />
+            <MiniMap zoomable  pannable />
           </ReactFlow>
         </div>
       </div>
@@ -920,6 +934,11 @@ const App = () => {
             </MenuTooltip>
             <MenuTooltip label="Used to inspect responses from prompter or evaluation nodes, without opening up the pop-up view.">
               <Menu.Item onClick={addInspectNode} icon={'🔍'}> Inspect Node </Menu.Item>
+            </MenuTooltip>
+            <Menu.Divider />
+            <Menu.Label>Processors</Menu.Label>
+            <MenuTooltip label="Concatenate responses or input data together before passing into later nodes, within or across variables and LLMs.">
+              <Menu.Item onClick={addJoinNode} icon={<IconArrowMerge size='14pt' />}> Join Node </Menu.Item>
             </MenuTooltip>
             <Menu.Divider />
             <Menu.Label>Misc</Menu.Label>

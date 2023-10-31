@@ -3,7 +3,7 @@ import {
   addEdge,
   applyNodeChanges,
   applyEdgeChanges,
-} from 'react-flow-renderer';
+} from 'reactflow';
 import { escapeBraces } from './backend/template';
 import { filterDict } from './backend/utils';
 import { APP_IS_RUNNING_LOCALLY } from './backend/utils';
@@ -26,7 +26,7 @@ export const colorPalettes = {
   var: varColorPalette,
 }
 
-const refreshableOutputNodeTypes = new Set(['evaluator', 'prompt', 'inspect', 'vis', 'llmeval', 'textfields', 'chat', 'simpleval']);
+const refreshableOutputNodeTypes = new Set(['evaluator', 'prompt', 'inspect', 'vis', 'llmeval', 'textfields', 'chat', 'simpleval', 'join']);
 
 export let initLLMProviders = [
   { name: "GPT3.5", emoji: "🤖", model: "gpt-3.5-turbo", base_model: "gpt-3.5-turbo", temp: 1.0 },  // The base_model designates what settings form will be used, and must be unique.
@@ -35,6 +35,7 @@ export let initLLMProviders = [
   { name: "PaLM2", emoji: "🦬", model: "chat-bison-001", base_model: "palm2-bison", temp: 0.7 },
   { name: "Azure OpenAI", emoji: "🔷", model: "azure-openai", base_model: "azure-openai", temp: 1.0 },
   { name: "HuggingFace", emoji: "🤗", model: "tiiuae/falcon-7b-instruct", base_model: "hf", temp: 1.0 },
+  { name: "Aleph Alpha", emoji: "💡", model: "luminous-base", base_model: "luminous-base", temp: 0.0 }
 ];
 if (APP_IS_RUNNING_LOCALLY()) {
   initLLMProviders.push({ name: "Dalai (Alpaca.7B)", emoji: "🦙", model: "alpaca.7B", base_model: "dalai", temp: 0.5 });
@@ -203,6 +204,56 @@ const useStore = create((set, get) => ({
       return null;
     }
   },
+
+  // Pull all inputs needed to request responses.
+  // Returns [prompt, vars dict]
+  pullInputData: (_targetHandles, node_id) => {
+    // Functions/data from the store:
+    const getNode = get().getNode;
+    const output = get().output;
+    const edges = get().edges; 
+
+    // Helper function to store collected data in dict: 
+    const store_data = (_texts, _varname, _data) => {
+      if (_varname in _data)
+        _data[_varname] = _data[_varname].concat(_texts);
+      else
+        _data[_varname] = _texts;
+    };
+
+    // Pull data from each source recursively:
+    const pulled_data = {};
+    const get_outputs = (varnames, nodeId) => {
+      varnames.forEach(varname => {
+        // Find the relevant edge(s):
+        edges.forEach(e => {
+          if (e.target == nodeId && e.targetHandle == varname) {
+            // Get the immediate output:
+            let out = output(e.source, e.sourceHandle);
+            if (!out || !Array.isArray(out) || out.length === 0) return;
+
+            // Check the format of the output. Can be str or dict with 'text' and more attrs:
+            if (typeof out[0] === 'object') {
+              out.forEach(obj => store_data([obj], varname, pulled_data));
+            }
+            else {
+              // Save the list of strings from the pulled output under the var 'varname'
+              store_data(out, varname, pulled_data);
+            }
+            
+            // Get any vars that the output depends on, and recursively collect those outputs as well:
+            const n_vars = getNode(e.source).data.vars;
+            if (n_vars && Array.isArray(n_vars) && n_vars.length > 0)
+              get_outputs(n_vars, e.source);
+          }
+        });
+      });
+    };
+    get_outputs(_targetHandles, node_id);
+
+    return pulled_data;
+  },
+
   setDataPropsForNode: (id, data_props) => {
     set({
       nodes: (nds => 
@@ -238,6 +289,11 @@ const useStore = create((set, get) => ({
       edges: newedges
     });
   },
+  removeEdge: (id) => {
+    set({
+      edges: applyEdgeChanges([{id: id, type: 'remove'}], get().edges),
+    });
+  },
   onNodesChange: (changes) => {
     set({
       nodes: applyNodeChanges(changes, get().nodes),
@@ -264,8 +320,9 @@ const useStore = create((set, get) => ({
       get().setDataPropsForNode(target.id, { refresh: true });
     }
 
-    connection.interactionWidth = 100;
+    connection.interactionWidth = 40;
     connection.markerEnd = {type: 'arrow', width: '22px', height: '22px'};
+    connection.type = 'default';
 
     set({
       edges: addEdge(connection, get().edges) // get().edges.concat(connection)
