@@ -4,11 +4,13 @@
 export type LLM = string | NativeLLM;
 export enum NativeLLM {
   // OpenAI Chat
+  OpenAI_ChatGPT_1106 = "gpt-3.5-turbo-1106",
   OpenAI_ChatGPT = "gpt-3.5-turbo",
   OpenAI_ChatGPT_16k = "gpt-3.5-turbo-16k",
   OpenAI_ChatGPT_16k_0613 = "gpt-3.5-turbo-16k-0613",
   OpenAI_ChatGPT_0301 = "gpt-3.5-turbo-0301",
   OpenAI_ChatGPT_0613 = "gpt-3.5-turbo-0613",
+  OpenAI_GPT4_1106_PREVIEW = "gpt-4-1106-preview",
   OpenAI_GPT4 = "gpt-4",
   OpenAI_GPT4_0314 = "gpt-4-0314",
   OpenAI_GPT4_0613 = "gpt-4-0613",
@@ -118,6 +120,7 @@ export function getProvider(llm: LLM): LLMProvider | undefined {
 #   If a model is missing from below, it means we must send and receive only 1 request at a time (synchronous).
 #   The following is only a guideline, and a bit on the conservative side.  */
 export let RATE_LIMITS: { [key in LLM]?: [number, number] } = {
+  [NativeLLM.OpenAI_ChatGPT_1106]: [30, 10],
   [NativeLLM.OpenAI_ChatGPT]: [30, 10],  // max 30 requests a batch; wait 10 seconds between
   [NativeLLM.OpenAI_ChatGPT_0301]: [30, 10],
   [NativeLLM.OpenAI_ChatGPT_0613]: [30, 10],
@@ -126,6 +129,7 @@ export let RATE_LIMITS: { [key in LLM]?: [number, number] } = {
   [NativeLLM.OpenAI_GPT4]: [4, 15],  // max 4 requests a batch; wait 15 seconds between
   [NativeLLM.OpenAI_GPT4_0314]: [4, 15],
   [NativeLLM.OpenAI_GPT4_0613]: [4, 15],
+  [NativeLLM.OpenAI_GPT4_1106_PREVIEW]: [4, 15],
   [NativeLLM.OpenAI_GPT4_32k]: [4, 15],
   [NativeLLM.OpenAI_GPT4_32k_0314]: [4, 15],
   [NativeLLM.OpenAI_GPT4_32k_0613]: [4, 15],
