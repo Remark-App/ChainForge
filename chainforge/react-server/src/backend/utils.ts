@@ -175,9 +175,18 @@ export async function call_chatgpt(prompt: string, model: LLM, n: number = 1, te
 
   // Determine the system message and whether there's chat history to continue:
   const chat_history: ChatHistory | undefined = params?.chat_history;
-  const system_msg: string = params?.system_msg !== undefined ? params.system_msg : "You are a helpful assistant.";
+  let system_msg: string = params?.system_msg !== undefined ? params.system_msg : "You are a helpful assistant.";
   delete params?.system_msg;
   delete params?.chat_history;
+  if(params.response_format !== 'json_object'){
+    delete params?.response_format
+  }
+
+  if(params.response_format === 'json_object'){
+    params['response_format'] = {"type": "json_object"}
+    system_msg = system_msg + " json"
+  }
+
 
   let query: Dict = {
     model: modelname,
@@ -199,6 +208,7 @@ export async function call_chatgpt(prompt: string, model: LLM, n: number = 1, te
     // Carry over chat history, if present:
     query['messages'] = construct_openai_chat_history(prompt, chat_history, system_msg);
   }
+
 
   // Try to call OpenAI
   let response: Dict = {};
