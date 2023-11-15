@@ -208,7 +208,7 @@ const GPT4Settings = {
       },
       "model": {
         ...ChatGPTSettings.schema.properties.model,
-        "default": "gpt-4"
+        "default": "gpt-4-1106-preview"
             }
         }
   },
