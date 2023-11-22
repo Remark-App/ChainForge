@@ -34,6 +34,7 @@ export enum NativeLLM {
   Dalai_Llama_65B = "llama.65B",
 
   // Anthropic
+  Claude_v2_1 = "claude-2.1",
   Claude_v2 = "claude-2",
   Claude_v2_0 = "claude-2.0",
   Claude_1_instant = "claude-instant-1",

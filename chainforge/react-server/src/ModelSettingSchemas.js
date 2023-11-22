@@ -239,9 +239,9 @@ const ClaudeSettings = {
                 "type": "string",
                 "title": "Model Version",
                 "description": "Select a version of Claude to query. For more details on the differences, see the Anthropic API documentation.",
-                "enum": ["claude-2", "claude-2.0", "claude-instant-1", "claude-instant-1.1", "claude-v1", "claude-v1-100k", "claude-instant-v1", "claude-instant-v1-100k", "claude-v1.3", 
+                "enum": ["claude-2.1", "claude-2", "claude-2.0", "claude-instant-1", "claude-instant-1.1", "claude-v1", "claude-v1-100k", "claude-instant-v1", "claude-instant-v1-100k", "claude-v1.3", 
                          "claude-v1.3-100k", "claude-v1.2", "claude-v1.0", "claude-instant-v1.1", "claude-instant-v1.1-100k", "claude-instant-v1.0"],
-                "default": "claude-2"
+                "default": "claude-2.1"
       },
       "temperature": {
                 "type": "number",
@@ -297,7 +297,7 @@ const ClaudeSettings = {
           "ui:autofocus": true
         },
         "model": {
-            "ui:help": "Defaults to claude-2. Note that Anthropic models in particular are subject to change. Model names prior to Claude 2, including 100k context window, are no longer listed on the Anthropic site, so they may or may not work."
+            "ui:help": "Defaults to claude-2.1 . Note that Anthropic models in particular are subject to change. Model names prior to Claude 2, including 100k context window, are no longer listed on the Anthropic site, so they may or may not work."
         },
         "temperature": {
           "ui:help": "Defaults to 1.0.",
