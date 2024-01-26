@@ -262,7 +262,7 @@ const LLMResponseInspector = ({ jsonResponses, wideFormat }) => {
             {(contains_eval_res && onlyShowScores) ? <pre>{}</pre> : 
               
               
-              ((res_obj.llm === "LLAMA2" || res_obj.llm === "DEEPINFRA" ) ? 
+              ((res_obj.llm === "LLAMA2" || res_obj.llm === "DEEPINFRA" || res_obj.llm === "TOGETHER" ) ? 
               <div style={{
                 position: 'relative'
               }}>
