@@ -4,6 +4,7 @@
 export type LLM = string | NativeLLM;
 export enum NativeLLM {
   // OpenAI Chat
+  OpenAI_ChatGPT_0125 = "gpt-3.5-turbo-0125",
   OpenAI_ChatGPT_1106 = "gpt-3.5-turbo-1106",
   OpenAI_ChatGPT = "gpt-3.5-turbo",
   OpenAI_ChatGPT_16k = "gpt-3.5-turbo-16k",
@@ -11,6 +12,7 @@ export enum NativeLLM {
   OpenAI_ChatGPT_0301 = "gpt-3.5-turbo-0301",
   OpenAI_ChatGPT_0613 = "gpt-3.5-turbo-0613",
   OpenAI_GPT4_1106_PREVIEW = "gpt-4-1106-preview",
+  OpenAI_GPT4_0125_PREVIEW = "gpt-4-0125-preview",
   OpenAI_GPT4 = "gpt-4",
   OpenAI_GPT4_0314 = "gpt-4-0314",
   OpenAI_GPT4_0613 = "gpt-4-0613",
@@ -131,6 +133,7 @@ export let RATE_LIMITS: { [key in LLM]?: [number, number] } = {
   [NativeLLM.OpenAI_GPT4_0314]: [4, 15],
   [NativeLLM.OpenAI_GPT4_0613]: [4, 15],
   [NativeLLM.OpenAI_GPT4_1106_PREVIEW]: [4, 15],
+  [NativeLLM.OpenAI_GPT4_0125_PREVIEW]: [4, 15],
   [NativeLLM.OpenAI_GPT4_32k]: [4, 15],
   [NativeLLM.OpenAI_GPT4_32k_0314]: [4, 15],
   [NativeLLM.OpenAI_GPT4_32k_0613]: [4, 15],
